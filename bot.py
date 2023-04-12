@@ -118,7 +118,10 @@ async def ihelp(msg: Message):
     await msg.reply('flip left/right/up/down: flip image')
 
 
+@bot.command('ping')
+async def ping(msg: Message):
+    await msg.reply('pong')
 
-
+    
 # bot run
 bot.run()
