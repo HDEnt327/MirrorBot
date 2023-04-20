@@ -25,6 +25,7 @@ direction = ''
 toBeReplied = None
 mode = ''
 task = None
+mtype = ''
 
 # handle image message
 # execute only when activated is True
@@ -101,8 +102,22 @@ async def flip_image(img):
 # make charac.png transparent, and put it on top of the image sent by user
 async def merge_image(img: Image):
     global mode
-    charac = Image.open('./src/charac.png')
-    cwidth, cheight = (880, 880)
+    global mtype
+    cvsize = 0
+    xpos = 0
+    ypos = 0
+    if mtype == '1':
+        imgsrc = './src/charac.png'
+        cvsize = 880
+        xpos = 145
+        ypos = 177
+    if mtype == '2':
+        imgsrc = './src/awaken.png'
+        cvsize = 772
+        xpos = 168
+        ypos = 179
+    charac = Image.open(imgsrc)
+    cwidth, cheight = (cvsize, cvsize)
     charac = charac.convert('RGBA')
     img = img.convert('RGBA')
     new_img = Image.new('RGB', img.size, (255, 255, 255))
@@ -122,11 +137,11 @@ async def merge_image(img: Image):
             img = img.resize((cwidth, cwidth), resample = Image.LANCZOS)
             width, height = img.size
             new_img = Image.new('RGB', charac.size, (255, 255, 255))
-            new_img.paste(img, (145, 177))
+            new_img.paste(img, (xpos, ypos))
             new_img.paste(charac, (0, 0), charac)
         width, height = img.size
         new_img = Image.new('RGB', charac.size, (255, 255, 255))
-        new_img.paste(img, (145+(880-width)//2, 177))
+        new_img.paste(img, (xpos+(cvsize-width)//2, ypos))
         new_img.paste(charac, (0, 0), charac)
     elif mode == 'shrink':
         if width < height:
@@ -139,11 +154,11 @@ async def merge_image(img: Image):
             img = img.resize((cwidth, cwidth), resample = Image.LANCZOS)
             width, height = img.size
             new_img = Image.new('RGB', charac.size, (255, 255, 255))
-            new_img.paste(img, (145, 177))
+            new_img.paste(img, (xpos, ypos))
             new_img.paste(charac, (0, 0), charac)
         width, height = img.size
         new_img = Image.new('RGB', charac.size, (255, 255, 255))
-        new_img.paste(img, (145 + (880-width)//2, 177))
+        new_img.paste(img, (xpos + (cvsize-width)//2, ypos))
         new_img.paste(charac, (0, 0), charac)
     mode = ''
     return new_img
@@ -175,6 +190,7 @@ async def reset():
     global toBeReplied
     global mode
     global task
+    global mtype
     print('[info] global variables reset')
     activated = False
     type = ''
@@ -182,6 +198,7 @@ async def reset():
     toBeReplied = None
     mode = ''
     task = None
+    mtype = ''
 
 
 # on command cancel, cancel timer
@@ -194,30 +211,6 @@ async def cancel(msg: Message):
         await msg.reply('cancelled')
         await reset()
         print('[info] task cancelled')
-
-
-# async def timer():
-#     global task
-#     timer = threading.Timer(10000, )
-#     timer.start()
-#     print('timer started')
-#     task = timer
-
-# async def timer_actions():
-#     global activated
-#     global type
-#     global direction
-#     global toBeReplied
-#     global mode
-#     global task
-#     print("timer ended")
-#     await toBeReplied.reply('error: time out, please try again')
-#     activated = False
-#     type = ''
-#     direction = ''
-#     toBeReplied = None
-#     mode = ''
-#     task = None
 
 
 # on command flip, activated is set to True, and type is set to flip, send prompt message to user to send image
@@ -251,6 +244,7 @@ async def merge(msg: Message, t: str = '', m: str = ''):
     global type
     global toBeReplied
     global mode
+    global mtype
     if activated:
         await msg.reply('error: another person is using a command or a command is processing, please wait. \nThis won\'t take more than 30 seconds')
         return
@@ -260,6 +254,7 @@ async def merge(msg: Message, t: str = '', m: str = ''):
     activated = True
     type = 'merge'
     toBeReplied = msg
+    mtype = t
     if mode == 'shrink' or mode == 'expand':
         mode = m
     else:
@@ -272,7 +267,7 @@ async def merge(msg: Message, t: str = '', m: str = ''):
 # merge types are to be determined, create the command first, the description will be filled later
 @bot.command('mergelist')
 async def mergelist(msg: Message):
-    await msg.reply('merge types:\n1. character\n2. \n3. \n4. \nmodes: shrink, expand (default is expand)\nuse /merge [number] [mode] to merge two images')
+    await msg.reply('merge types:\n1. character\n2. awaken\n3. \n4. \nmodes: shrink, expand (default is expand)\nuse /merge [number] [mode] to merge two images')
 
 
 @bot.command('ihelp')
